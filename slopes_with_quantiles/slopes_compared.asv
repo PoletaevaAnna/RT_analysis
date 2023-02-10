@@ -1,0 +1,59 @@
+% For each drug: find each_trial_to_quantiles.
+clear
+cd ('C:\Users\Anna Poletaeva\Desktop\research project')
+
+load('Data_for_anna.mat');
+open('Data_for_anna.mat');
+cd('slopes\')
+quant = 1:4;
+
+for i = 1:3
+    drug_data = Data((Data.Drug_ID == i), :);
+    [corr, err] = each_trial_to_quantiles(drug_data);
+%     figure(1)
+%     set(gcf, 'Position', [1 1 1000 350])
+%     subplot(1, 3, i)
+    slope = err - corr;
+    for n = 1: height(slope)
+%         plot(quant,slope(n, :))
+%         hold on
+        linear_coeff = polyfit(quant, slope(n, :), 1);
+        lin_coef_all (n, i) = linear_coeff(1);
+        start_point_all(n, i) = linear_coeff(2);
+    end
+    subplot(2, 2, 4)
+    scatter(i, lin_coef_all(:, i), 'MarkerFaceColor', 'k', 'MarkerFaceAlpha', 0.5)
+    hold on
+    subplot(2, 2, 2)
+    scatter(i, start_point_all(:, i), 'MarkerFaceColor', 'k', 'MarkerFaceAlpha', 0.5)
+    hold on
+%     title('Drug', num2str(i))
+%     ylim([-0.1 0.35])
+%     ylabel('Reaction time, s')
+%     xlabel('Quantile')
+end
+
+combinations = [1 2; 2 3; 1 3];
+subplot(2, 2, 4)
+h_p_vals = rank_test_3_drugs(lin_coef_all, combinations);
+
+generate_sigline(0.12, lin_coef_all, 0.013, combinations, 0.3)
+xlim([0.3 3.8])
+ylim([-0.05 0.17])
+xticks([1 2 3])
+set(gca,'xticklabel', {'drug 1', 'drug 2', 'drug 3'})
+%generate_sigline()
+subplot(2, 2, 2)
+h_p_vals = rank_test_3_drugs(start_point_all, combinations);
+
+generate_sigline(0.12, start_point_all, 0.013, combinations, 0.3)
+
+xlim([0.3 3.8])
+ylim([-0.05 0.17])
+xticks([1 2 3])
+set(gca,'xticklabel', {'drug 1', 'drug 2', 'drug 3'})
+ylabel('')
+title('Start points for all 3 drugs, compared')
+
+
+
